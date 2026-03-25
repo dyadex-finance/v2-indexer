@@ -19,7 +19,7 @@ This indexer tracks all key events from Uniswap V2 `Factory` and `Pair` contract
 **Active chain:**
 Monad Testnet (chain ID 10143)
 
-> Ethereum Mainnet configuration is available in the config and can be enabled.
+> Ethereum Mainnet and other chain configurations are available in the config and can be enabled.
 
 ## Prerequisites
 
@@ -55,6 +55,7 @@ pnpm codegen
 
 - [HyperIndex Docs](https://docs.envio.dev/docs/HyperIndex/overview)
 - [Subgraph to HyperIndex query conversion](https://docs.envio.dev/docs/HyperIndex/query-conversion)
+- [Migrate from The Graph to Envio](https://docs.envio.dev/docs/HyperIndex/migration-guide)
 - [Getting Started with HyperIndex](https://docs.envio.dev/docs/HyperIndex/getting-started)
 
 ## Support

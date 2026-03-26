@@ -4,11 +4,14 @@
 
 A Uniswap V2 subgraph migration built with [Envio HyperIndex](https://docs.envio.dev/docs/HyperIndex/overview). Migrated from The Graph subgraph to HyperIndex for faster data access.
 
-## What This Indexes
+## What's Indexed
 
-This indexer tracks all key events from Uniswap V2 `Factory` and `Pair` contracts:
+The GraphQL API exposes pair statistics, swap history, liquidity data, reserve updates, and LP token transfers. You can use this to power analytics dashboards, trading interfaces, liquidity trackers, and Uniswap V2 data tools.
 
-**Events indexed:**
+## Events Indexed
+
+From `Factory` and `Pair` contracts:
+
 - `PairCreated` - new pair deployments
 - `Mint` - liquidity additions
 - `Burn` - liquidity removals
@@ -16,7 +19,8 @@ This indexer tracks all key events from Uniswap V2 `Factory` and `Pair` contract
 - `Sync` - reserve updates
 - `Transfer` - LP token transfers
 
-**Active chain:**
+## Active Chain
+
 Monad Testnet (chain ID 10143)
 
 > Ethereum Mainnet and other chain configurations are available in the config and can be enabled.

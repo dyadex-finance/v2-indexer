@@ -2,28 +2,30 @@
 // Reference: original-subgraph/src/common/hourDayUpdates.ts
 // All helper functions have been implemented below
 
-import { BigDecimal } from "generated";
+import { BigDecimal } from "envio";
 import { ZERO_BD, ZERO_BI, ONE_BI } from "./constants";
 import { getFactoryAddress } from "./chainConfig";
-import {
-  UniswapFactory_t,
-  UniswapDayData_t,
-  PairDayData_t,
-  PairHourData_t,
-  TokenDayData_t,
-  Token_t,
-  Bundle_t,
-} from "generated/src/db/Entities.gen";
+import type {
+  UniswapFactory,
+  UniswapDayData,
+  PairDayData,
+  PairHourData,
+  TokenDayData,
+  Token,
+  Bundle,
+} from "envio";
 
 export async function updateUniswapDayData(
   event: any,
   context: any,
-  chainId: string
-): Promise<UniswapDayData_t> {
-      const factoryAddress = getFactoryAddress(Number(chainId));
-    const uniswap = await context.UniswapFactory.get(`${chainId}-${factoryAddress}`);
+  chainId: string,
+): Promise<UniswapDayData> {
+  const factoryAddress = getFactoryAddress(Number(chainId));
+  const uniswap = await context.UniswapFactory.get(
+    `${chainId}-${factoryAddress}`,
+  );
   if (!uniswap) {
-    throw new Error('Factory not found for updateUniswapDayData');
+    throw new Error("Factory not found for updateUniswapDayData");
   }
 
   const timestamp = Number(event.block.timestamp);
@@ -58,15 +60,15 @@ export async function updatePairDayData(
   pair: any,
   event: any,
   context: any,
-  chainId: string
+  chainId: string,
 ): Promise<any> {
   const timestamp = Number(event.block.timestamp);
   const dayID = Math.floor(timestamp / 86400);
   const dayStartTimestamp = dayID * 86400;
-  
+
   // Use pairAddress for ID generation and pairAddress field
   const dayPairID = `${chainId}-${event.srcAddress}-${dayID}`;
-  
+
   let pairDayData = await context.PairDayData.get(dayPairID);
 
   if (!pairDayData) {
@@ -93,15 +95,15 @@ export async function updatePairDayData(
   }
 
   // Update all fields as strings
-  pairDayData.totalSupply = pair.totalSupply
-  pairDayData.reserve0 = pair.reserve0
-  pairDayData.reserve1 = pair.reserve1
-  pairDayData.reserveUSD = pair.reserveUSD
-  
+  pairDayData.totalSupply = pair.totalSupply;
+  pairDayData.reserve0 = pair.reserve0;
+  pairDayData.reserve1 = pair.reserve1;
+  pairDayData.reserveUSD = pair.reserveUSD;
+
   // Update dailyTxns as BigInt
   const currentTxns = pairDayData.dailyTxns;
   pairDayData.dailyTxns = currentTxns + ONE_BI;
-  
+
   context.PairDayData.set(pairDayData);
 
   return pairDayData;
@@ -111,7 +113,7 @@ export async function updatePairHourData(
   pair: any,
   event: any,
   context: any,
-  chainId: string
+  chainId: string,
 ): Promise<any> {
   const timestamp = Number(event.block.timestamp);
   const hourIndex = Math.floor(timestamp / 3600);
@@ -139,7 +141,7 @@ export async function updatePairHourData(
   pairHourData.reserve0 = pair.reserve0;
   pairHourData.reserve1 = pair.reserve1;
   pairHourData.reserveUSD = pair.reserveUSD;
-  
+
   pairHourData.hourlyTxns = pairHourData.hourlyTxns + ONE_BI;
   context.PairHourData.set(pairHourData);
 
@@ -150,11 +152,11 @@ export async function updateTokenDayData(
   token: any,
   event: any,
   context: any,
-  chainId: string
+  chainId: string,
 ): Promise<any> {
   const bundle = await context.Bundle.get(`${chainId}-1`);
   if (!bundle) {
-    throw new Error('Bundle not found for updateTokenDayData');
+    throw new Error("Bundle not found for updateTokenDayData");
   }
 
   const timestamp = Number(event.block.timestamp);
@@ -182,14 +184,11 @@ export async function updateTokenDayData(
   tokenDayData.priceUSD = token.derivedETH * bundle.ethPrice;
   tokenDayData.totalLiquidityToken = token.totalLiquidity;
   tokenDayData.totalLiquidityETH = token.totalLiquidity * token.derivedETH;
-  tokenDayData.totalLiquidityUSD = tokenDayData.totalLiquidityETH * bundle.ethPrice;
-  
+  tokenDayData.totalLiquidityUSD =
+    tokenDayData.totalLiquidityETH * bundle.ethPrice;
+
   tokenDayData.dailyTxns = tokenDayData.dailyTxns + ONE_BI; // Use ONE_BI constant instead of BigInt(1)
   context.TokenDayData.set(tokenDayData);
 
   return tokenDayData;
 }
-
-
-
-

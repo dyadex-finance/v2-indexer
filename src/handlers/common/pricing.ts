@@ -2,9 +2,9 @@
 // Reference: original-subgraph/src/common/pricing.ts
 // Note: Removed whitelisting restrictions but kept data quality thresholds
 
-import { ZERO_BD, ONE_BD, ADDRESS_ZERO } from './constants';
-import { getChainConfig, getStableTokenPairs, getWhitelist, getStablecoins } from './chainConfig';
-import { BigDecimal } from 'generated';
+import { ZERO_BD, ONE_BD, ADDRESS_ZERO } from "./constants";
+import { getChainConfig } from "./chainConfig";
+import { BigDecimal } from "envio";
 
 // Return 0 if denominator is 0 in division
 export function safeDiv(amount0: BigDecimal, amount1: BigDecimal): BigDecimal {
@@ -19,7 +19,10 @@ export function safeDiv(amount0: BigDecimal, amount1: BigDecimal): BigDecimal {
  * Get ETH price in USD using stable token pairs
  * Keeps the original logic for reliable pricing
  */
-export async function getEthPriceInUSD(context: any, chainId: number): Promise<BigDecimal> {
+export async function getEthPriceInUSD(
+  context: any,
+  chainId: number,
+): Promise<BigDecimal> {
   // Get chain-specific configuration
   const chainConfig = getChainConfig(chainId);
   if (!chainConfig) {
@@ -28,7 +31,7 @@ export async function getEthPriceInUSD(context: any, chainId: number): Promise<B
   }
 
   const { STABLE_TOKEN_PAIRS, REFERENCE_TOKEN } = chainConfig;
-  
+
   // If no stable token pairs configured for this chain, return 0
   if (STABLE_TOKEN_PAIRS.length === 0) {
     context.log.warn(`No stable token pairs configured for chain ${chainId}`);
@@ -48,14 +51,15 @@ export async function getEthPriceInUSD(context: any, chainId: number): Promise<B
     const pairId = `${chainId}-${STABLE_TOKEN_PAIRS[i]}`;
     const stableTokenPair = await context.Pair.get(pairId);
     if (stableTokenPair) {
-      stableTokenIsToken0[i] = stableTokenPair.token1_id === `${chainId}-${REFERENCE_TOKEN}`;
+      stableTokenIsToken0[i] =
+        stableTokenPair.token1_id === `${chainId}-${REFERENCE_TOKEN}`;
       if (stableTokenIsToken0[i]) {
         stableTokenReserves[i] = stableTokenPair.reserve1;
-        stableTokenPrices[i] = stableTokenPair.token0Price;  // Fixed: use token0Price when token1 is REFERENCE_TOKEN
+        stableTokenPrices[i] = stableTokenPair.token0Price; // Fixed: use token0Price when token1 is REFERENCE_TOKEN
         totalLiquidityETH = totalLiquidityETH.plus(stableTokenPair.reserve1);
       } else {
         stableTokenReserves[i] = stableTokenPair.reserve0;
-        stableTokenPrices[i] = stableTokenPair.token1Price;  // Fixed: use token1Price when token0 is REFERENCE_TOKEN
+        stableTokenPrices[i] = stableTokenPair.token1Price; // Fixed: use token1Price when token0 is REFERENCE_TOKEN
         totalLiquidityETH = totalLiquidityETH.plus(stableTokenPair.reserve0);
       }
     }
@@ -65,8 +69,16 @@ export async function getEthPriceInUSD(context: any, chainId: number): Promise<B
   // Calculate weighted average price
   let tokenPrice = ZERO_BD;
   for (let i = 0; i < STABLE_TOKEN_PAIRS.length; i++) {
-    if (stableTokenPairs[i] !== null && stableTokenPrices[i] && stableTokenReserves[i]) {
-      tokenPrice = tokenPrice.plus(stableTokenPrices[i].times(safeDiv(stableTokenReserves[i], totalLiquidityETH)));
+    if (
+      stableTokenPairs[i] !== null &&
+      stableTokenPrices[i] &&
+      stableTokenReserves[i]
+    ) {
+      tokenPrice = tokenPrice.plus(
+        stableTokenPrices[i].times(
+          safeDiv(stableTokenReserves[i], totalLiquidityETH),
+        ),
+      );
     }
   }
   return tokenPrice;
@@ -83,7 +95,7 @@ export async function getTrackedVolumeUSD(
   token1: any,
   pair: any,
   context: any,
-  chainId: number
+  chainId: number,
 ): Promise<BigDecimal> {
   const bundle = await context.Bundle.get(`${chainId}-1`);
   if (!bundle || !bundle.ethPrice) {
@@ -103,11 +115,13 @@ export async function getTrackedVolumeUSD(
   if (pair.liquidityProviderCount < BigInt(5)) {
     const reserve0USD = pair.reserve0.times(price0);
     const reserve1USD = pair.reserve1.times(price1);
-    
+
     // Get chain-specific minimum threshold
     const chainConfig = getChainConfig(chainId);
-    const minThreshold = chainConfig ? new BigDecimal(chainConfig.MINIMUM_USD_THRESHOLD_NEW_PAIRS) : new BigDecimal('10000');
-    
+    const minThreshold = chainConfig
+      ? new BigDecimal(chainConfig.MINIMUM_USD_THRESHOLD_NEW_PAIRS)
+      : new BigDecimal("10000");
+
     // Check if reserves meet minimum threshold for data quality
     if (reserve0USD.plus(reserve1USD).isLessThan(minThreshold)) {
       return ZERO_BD;
@@ -116,7 +130,10 @@ export async function getTrackedVolumeUSD(
 
   // Calculate volume based on both tokens (no whitelist restrictions)
   // Take average of both amounts for balanced calculation
-  return tokenAmount0.times(price0).plus(tokenAmount1.times(price1)).div(new BigDecimal(2));
+  return tokenAmount0
+    .times(price0)
+    .plus(tokenAmount1.times(price1))
+    .div(new BigDecimal(2));
 }
 
 /**
@@ -129,7 +146,7 @@ export async function getTrackedLiquidityUSD(
   token0: any,
   token1: any,
   context: any,
-  chainId: number
+  chainId: number,
 ): Promise<BigDecimal> {
   const bundle = await context.Bundle.get(`${chainId}-1`);
   if (!bundle || !bundle.ethPrice) {
@@ -158,7 +175,7 @@ export async function getTokenTrackedLiquidityUSD(
   companionTokenAmount: BigDecimal,
   companionToken: any,
   context: any,
-  chainId: number
+  chainId: number,
 ): Promise<BigDecimal> {
   const bundle = await context.Bundle.get(`${chainId}-1`);
   if (!bundle || !bundle.ethPrice) {
@@ -175,7 +192,9 @@ export async function getTokenTrackedLiquidityUSD(
 
   // Calculate liquidity for both tokens (no whitelist restrictions)
   // Process all tokens equally
-  return tokenForPricingAmount.times(price0).plus(companionTokenAmount.times(price1));
+  return tokenForPricingAmount
+    .times(price0)
+    .plus(companionTokenAmount.times(price1));
 }
 
 /**
@@ -183,7 +202,11 @@ export async function getTokenTrackedLiquidityUSD(
  * Implements the complete logic from original subgraph using WHITELIST for pricing accuracy
  * Uses PairTokenLookup entities to find reliable pricing sources
  */
-export async function findEthPerToken(token: any, context: any, chainId: number): Promise<BigDecimal> {
+export async function findEthPerToken(
+  token: any,
+  context: any,
+  chainId: number,
+): Promise<BigDecimal> {
   // Get chain-specific configuration
   const chainConfig = getChainConfig(chainId);
   if (!chainConfig) {
@@ -191,8 +214,13 @@ export async function findEthPerToken(token: any, context: any, chainId: number)
     return ZERO_BD;
   }
 
-  const { REFERENCE_TOKEN, STABLECOINS, WHITELIST, MINIMUM_LIQUIDITY_THRESHOLD_ETH } = chainConfig;
-  
+  const {
+    REFERENCE_TOKEN,
+    STABLECOINS,
+    WHITELIST,
+    MINIMUM_LIQUIDITY_THRESHOLD_ETH,
+  } = chainConfig;
+
   if (token.id === `${chainId}-${REFERENCE_TOKEN}`) {
     return ONE_BD;
   }
@@ -204,7 +232,7 @@ export async function findEthPerToken(token: any, context: any, chainId: number)
   }
 
   // For stablecoins, calculate based on ETH price
-  if (STABLECOINS.includes(token.id.replace(`${chainId}-`, ''))) {
+  if (STABLECOINS.includes(token.id.replace(`${chainId}-`, ""))) {
     return safeDiv(ONE_BD, bundle.ethPrice);
   }
 
@@ -213,16 +241,19 @@ export async function findEthPerToken(token: any, context: any, chainId: number)
   for (let i = 0; i < WHITELIST.length; ++i) {
     const pairLookupId = `${chainId}-${token.id}-${chainId}-${WHITELIST[i]}`;
     const pairLookup = await context.PairTokenLookup.get(pairLookupId);
-    
+
     if (pairLookup) {
       const pairId = pairLookup.pair_id;
       if (pairId !== ADDRESS_ZERO) {
         const pair = await context.Pair.get(pairId);
         if (pair) {
           const minLiquidity = new BigDecimal(MINIMUM_LIQUIDITY_THRESHOLD_ETH);
-          
+
           // Check if token0 is our token and has sufficient liquidity
-          if (pair.token0_id === token.id && pair.reserveETH.isGreaterThan(minLiquidity)) {
+          if (
+            pair.token0_id === token.id &&
+            pair.reserveETH.isGreaterThan(minLiquidity)
+          ) {
             const token1 = await context.Token.get(pair.token1_id);
             if (token1) {
               // Return token1 per our token * ETH per token1
@@ -230,7 +261,10 @@ export async function findEthPerToken(token: any, context: any, chainId: number)
             }
           }
           // Check if token1 is our token and has sufficient liquidity
-          if (pair.token1_id === token.id && pair.reserveETH.isGreaterThan(minLiquidity)) {
+          if (
+            pair.token1_id === token.id &&
+            pair.reserveETH.isGreaterThan(minLiquidity)
+          ) {
             const token0 = await context.Token.get(pair.token0_id);
             if (token0) {
               // Return token0 per our token * ETH per token0
@@ -241,7 +275,7 @@ export async function findEthPerToken(token: any, context: any, chainId: number)
       }
     }
   }
-  
+
   // Nothing was found, return 0
   return ZERO_BD;
 }

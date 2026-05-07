@@ -9,14 +9,15 @@ import type {
   Bundle,
   PairTokenLookup,
 } from "envio";
-import { ZERO_BD, ZERO_BI } from "./common/constants";
-import { getFactoryAddress, getStableTokenPairs } from "./common/chainConfig";
+import { ZERO_BD, ZERO_BI } from "../common/constants";
+import { getFactoryAddress, getStableTokenPairs } from "../common/chainConfig";
 import {
   getTokenSymbol,
   getTokenName,
   getTokenTotalSupply,
   getTokenDecimals,
-} from "./common/effects";
+} from "../common/effects";
+import type { ChainId } from "../common/chainId";
 
 // Register dynamic Pair contracts with Envio
 indexer.contractRegister(
@@ -58,7 +59,7 @@ indexer.onEvent(
       context.UniswapFactory.set(updatedFactory);
 
       // 2. Load/Create Bundle entity (id: '1')
-      const chainId = event.chainId;
+      const chainId: ChainId = event.chainId;
       let bundle = await context.Bundle.get(`${chainId}-1`);
       if (!bundle) {
         bundle = {

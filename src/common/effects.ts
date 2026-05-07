@@ -7,6 +7,7 @@ import * as dotenv from "dotenv";
 import { getStaticDefinition, SKIP_TOTAL_SUPPLY } from "./tokenDefinition";
 import { ZERO_BI } from "./constants";
 import { getChainConfig } from "./chainRpcConfig";
+import type { ChainId } from "./chainId";
 
 // Load environment variables
 dotenv.config();
@@ -31,7 +32,7 @@ const ERC20_NAME_BYTES_ABI = parseAbi([
 ]);
 
 // Function to create a public client for a specific chain
-function createChainClient(chainId: number) {
+function createChainClient(chainId: number | ChainId) {
   const chainConfig = getChainConfig(chainId);
 
   // The getChainConfig function already validates that rpcUrl exists

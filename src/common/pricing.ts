@@ -5,6 +5,7 @@
 import { ZERO_BD, ONE_BD, ADDRESS_ZERO } from "./constants";
 import { getChainConfig } from "./chainConfig";
 import { BigDecimal } from "envio";
+import type { ChainId } from "./chainId";
 
 // Return 0 if denominator is 0 in division
 export function safeDiv(amount0: BigDecimal, amount1: BigDecimal): BigDecimal {
@@ -21,7 +22,7 @@ export function safeDiv(amount0: BigDecimal, amount1: BigDecimal): BigDecimal {
  */
 export async function getEthPriceInUSD(
   context: any,
-  chainId: number,
+  chainId: number | ChainId,
 ): Promise<BigDecimal> {
   // Get chain-specific configuration
   const chainConfig = getChainConfig(chainId);
@@ -95,7 +96,7 @@ export async function getTrackedVolumeUSD(
   token1: any,
   pair: any,
   context: any,
-  chainId: number,
+  chainId: number | ChainId,
 ): Promise<BigDecimal> {
   const bundle = await context.Bundle.get(`${chainId}-1`);
   if (!bundle || !bundle.ethPrice) {
@@ -146,7 +147,7 @@ export async function getTrackedLiquidityUSD(
   token0: any,
   token1: any,
   context: any,
-  chainId: number,
+  chainId: number | ChainId,
 ): Promise<BigDecimal> {
   const bundle = await context.Bundle.get(`${chainId}-1`);
   if (!bundle || !bundle.ethPrice) {
@@ -175,7 +176,7 @@ export async function getTokenTrackedLiquidityUSD(
   companionTokenAmount: BigDecimal,
   companionToken: any,
   context: any,
-  chainId: number,
+  chainId: number | ChainId,
 ): Promise<BigDecimal> {
   const bundle = await context.Bundle.get(`${chainId}-1`);
   if (!bundle || !bundle.ethPrice) {
@@ -205,7 +206,7 @@ export async function getTokenTrackedLiquidityUSD(
 export async function findEthPerToken(
   token: any,
   context: any,
-  chainId: number,
+  chainId: number | ChainId,
 ): Promise<BigDecimal> {
   // Get chain-specific configuration
   const chainConfig = getChainConfig(chainId);

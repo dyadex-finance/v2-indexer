@@ -1,7 +1,8 @@
 // Chain Configuration Loader
 // Dynamically loads chain-specific configurations based on chainId
 
-import * as monadTestnetConfig from "../../config/monad-testnet/chain";
+import * as monadTestnetConfig from "../config/monad-testnet/chain";
+import { ChainId, isChainId } from "./chainId";
 
 export interface ChainConfig {
   FACTORY_ADDRESS: string;
@@ -13,8 +14,8 @@ export interface ChainConfig {
   MINIMUM_LIQUIDITY_THRESHOLD_ETH: string;
 }
 
-const CHAIN_CONFIGS: Record<number, ChainConfig> = {
-  10143: monadTestnetConfig,
+const CHAIN_CONFIGS: Partial<Record<ChainId, ChainConfig>> = {
+  [ChainId.MonadTestnet]: monadTestnetConfig,
 };
 
 /**
@@ -22,7 +23,13 @@ const CHAIN_CONFIGS: Record<number, ChainConfig> = {
  * @param chainId - The chain ID
  * @returns Chain configuration or undefined if not supported
  */
-export function getChainConfig(chainId: number): ChainConfig | undefined {
+export function getChainConfig(
+  chainId: number | ChainId,
+): ChainConfig | undefined {
+  if (!isChainId(chainId)) {
+    return undefined;
+  }
+
   return CHAIN_CONFIGS[chainId];
 }
 
@@ -31,8 +38,10 @@ export function getChainConfig(chainId: number): ChainConfig | undefined {
  * @param chainId - The chain ID
  * @returns Factory address or undefined if chain not supported
  */
-export function getFactoryAddress(chainId: number): string | undefined {
-  return CHAIN_CONFIGS[chainId]?.FACTORY_ADDRESS;
+export function getFactoryAddress(
+  chainId: number | ChainId,
+): string | undefined {
+  return getChainConfig(chainId)?.FACTORY_ADDRESS;
 }
 
 /**
@@ -40,8 +49,10 @@ export function getFactoryAddress(chainId: number): string | undefined {
  * @param chainId - The chain ID
  * @returns Reference token address or undefined if chain not supported
  */
-export function getReferenceToken(chainId: number): string | undefined {
-  return CHAIN_CONFIGS[chainId]?.REFERENCE_TOKEN;
+export function getReferenceToken(
+  chainId: number | ChainId,
+): string | undefined {
+  return getChainConfig(chainId)?.REFERENCE_TOKEN;
 }
 
 /**
@@ -49,8 +60,8 @@ export function getReferenceToken(chainId: number): string | undefined {
  * @param chainId - The chain ID
  * @returns Array of stable token pair addresses or empty array if chain not supported
  */
-export function getStableTokenPairs(chainId: number): string[] {
-  return CHAIN_CONFIGS[chainId]?.STABLE_TOKEN_PAIRS || [];
+export function getStableTokenPairs(chainId: number | ChainId): string[] {
+  return getChainConfig(chainId)?.STABLE_TOKEN_PAIRS || [];
 }
 
 /**
@@ -58,8 +69,8 @@ export function getStableTokenPairs(chainId: number): string[] {
  * @param chainId - The chain ID
  * @returns Array of whitelist token addresses or empty array if chain not supported
  */
-export function getWhitelist(chainId: number): string[] {
-  return CHAIN_CONFIGS[chainId]?.WHITELIST || [];
+export function getWhitelist(chainId: number | ChainId): string[] {
+  return getChainConfig(chainId)?.WHITELIST || [];
 }
 
 /**
@@ -67,8 +78,8 @@ export function getWhitelist(chainId: number): string[] {
  * @param chainId - The chain ID
  * @returns Array of stablecoin addresses or empty array if chain not supported
  */
-export function getStablecoins(chainId: number): string[] {
-  return CHAIN_CONFIGS[chainId]?.STABLECOINS || [];
+export function getStablecoins(chainId: number | ChainId): string[] {
+  return getChainConfig(chainId)?.STABLECOINS || [];
 }
 
 /**
@@ -76,14 +87,14 @@ export function getStablecoins(chainId: number): string[] {
  * @param chainId - The chain ID
  * @returns True if chain is supported, false otherwise
  */
-export function isChainSupported(chainId: number): boolean {
-  return chainId in CHAIN_CONFIGS;
+export function isChainSupported(chainId: number | ChainId): boolean {
+  return isChainId(chainId) && chainId in CHAIN_CONFIGS;
 }
 
 /**
  * Get all supported chain IDs
  * @returns Array of supported chain IDs
  */
-export function getSupportedChainIds(): number[] {
-  return Object.keys(CHAIN_CONFIGS).map(Number);
+export function getSupportedChainIds(): ChainId[] {
+  return Object.keys(CHAIN_CONFIGS).map(Number) as ChainId[];
 }

@@ -1,10 +1,12 @@
 // Chain Configuration Index
 // Export chain configuration mapping
 
-// Chain ID to configuration mapping
-export const CHAIN_CONFIGS = {
-  31337: "anvil-local",
-  10143: "monad-testnet",
-} as const;
+import { ChainId } from "../common/chainId";
 
-export type SupportedChainId = keyof typeof CHAIN_CONFIGS;
+// Chain ID to configuration mapping
+export const CHAIN_CONFIGS: Record<ChainId, string> = {
+  [ChainId.AnvilLocal]: "anvil-local",
+  [ChainId.MonadTestnet]: "monad-testnet",
+};
+
+export type SupportedChainId = ChainId;

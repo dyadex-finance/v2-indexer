@@ -1,8 +1,10 @@
 // Multichain RPC Configuration
 // Centralized configuration for all supported chains
 
+import { ChainId, isChainId, toChainId } from "./chainId";
+
 export interface ChainRpcConfig {
-  chainId: number;
+  chainId: ChainId;
   name: string;
   network: string;
   nativeCurrency: {
@@ -16,13 +18,13 @@ export interface ChainRpcConfig {
 
 // Environment variable mapping for RPC URLs
 const RPC_URLS = {
-  10143: process.env.ENVIO_CHAIN_10143_RPC_URL,
+  [ChainId.MonadTestnet]: process.env.ENVIO_CHAIN_10143_RPC_URL,
 } as const;
 
 // Chain configurations
-export const CHAIN_CONFIGS: Record<number, ChainRpcConfig> = {
-  10143: {
-    chainId: 10143,
+export const CHAIN_CONFIGS: Partial<Record<ChainId, ChainRpcConfig>> = {
+  [ChainId.MonadTestnet]: {
+    chainId: ChainId.MonadTestnet,
     name: "Monad Testnet",
     network: "monad-testnet",
     nativeCurrency: {
@@ -30,15 +32,16 @@ export const CHAIN_CONFIGS: Record<number, ChainRpcConfig> = {
       name: "MON",
       symbol: "NATIVE",
     },
-    rpcUrl: RPC_URLS[10143],
+    rpcUrl: RPC_URLS[ChainId.MonadTestnet],
   },
 };
 
 // Helper function to get chain config by chain ID
-export function getChainConfig(chainId: number): ChainRpcConfig {
-  const config = CHAIN_CONFIGS[chainId];
+export function getChainConfig(chainId: number | ChainId): ChainRpcConfig {
+  const normalizedChainId = toChainId(chainId);
+  const config = CHAIN_CONFIGS[normalizedChainId];
   if (!config) {
-    throw new Error(`Unsupported chain ID: ${chainId}`);
+    throw new Error(`Unsupported chain ID: ${normalizedChainId}`);
   }
 
   // Validate that RPC URL is provided
@@ -52,13 +55,13 @@ export function getChainConfig(chainId: number): ChainRpcConfig {
 }
 
 // Helper function to check if chain is supported
-export function isChainSupported(chainId: number): boolean {
-  return chainId in CHAIN_CONFIGS;
+export function isChainSupported(chainId: number | ChainId): boolean {
+  return isChainId(chainId) && chainId in CHAIN_CONFIGS;
 }
 
 // Get all supported chain IDs
-export function getSupportedChainIds(): number[] {
-  return Object.keys(CHAIN_CONFIGS).map(Number);
+export function getSupportedChainIds(): ChainId[] {
+  return Object.keys(CHAIN_CONFIGS).map(Number) as ChainId[];
 }
 
 // Export RPC URLs for direct access if needed

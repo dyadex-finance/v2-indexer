@@ -17,21 +17,22 @@ import {
   ONE_BI,
   BI_18,
   ALMOST_ZERO_BD,
-} from "./common/constants";
-import { getFactoryAddress } from "./common/chainConfig";
-import { convertTokenToDecimal } from "./common/helpers";
+} from "../common/constants";
+import { getFactoryAddress } from "../common/chainConfig";
+import { convertTokenToDecimal } from "../common/helpers";
 import {
   getTrackedVolumeUSD,
   getEthPriceInUSD,
   findEthPerToken,
   getTrackedLiquidityUSD,
-} from "./common/pricing";
+} from "../common/pricing";
 import {
   updatePairDayData,
   updatePairHourData,
   updateUniswapDayData,
   updateTokenDayData,
-} from "./common/hourDayUpdates";
+} from "../common/hourDayUpdates";
+import type { ChainId } from "../common/chainId";
 
 // Helper function to check if a mint is complete (matches subgraph logic)
 function isCompleteMint(mint: Mint): boolean {
@@ -44,7 +45,7 @@ indexer.onEvent(
   { contract: "Pair", event: "Transfer" },
   async ({ event, context }) => {
     try {
-      const chainId = event.chainId;
+      const chainId: ChainId = event.chainId;
 
       // ignore initial transfers for first adds
       if (
@@ -273,7 +274,7 @@ indexer.onEvent(
   { contract: "Pair", event: "Mint" },
   async ({ event, context }) => {
     try {
-      const chainId = event.chainId;
+      const chainId: ChainId = event.chainId;
 
       // 1. Load Transaction entity (created by handleTransfer)
       const transactionId = `${chainId}-${event.transaction.hash}`;
@@ -413,7 +414,7 @@ indexer.onEvent(
   { contract: "Pair", event: "Burn" },
   async ({ event, context }) => {
     try {
-      const chainId = event.chainId;
+      const chainId: ChainId = event.chainId;
 
       // 1. Load Transaction entity (created by handleTransfer)
       const transactionId = `${chainId}-${event.transaction.hash}`;
@@ -553,7 +554,7 @@ indexer.onEvent(
   async ({ event, context }) => {
     try {
       // 1. Load Pair and UniswapFactory entities
-      const chainId = event.chainId;
+      const chainId: ChainId = event.chainId;
       let pair = await context.Pair.get(`${chainId}-${event.srcAddress}`);
       if (!pair) {
         return;
@@ -879,7 +880,7 @@ indexer.onEvent(
   async ({ event, context }) => {
     try {
       // 1. Load Pair and UniswapFactory entities
-      const chainId = event.chainId;
+      const chainId: ChainId = event.chainId;
       const pairId = `${chainId}-${event.srcAddress}`;
 
       let pair = await context.Pair.get(pairId);

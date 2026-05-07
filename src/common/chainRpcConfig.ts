@@ -1,28 +1,28 @@
 // Multichain RPC Configuration
 // Centralized configuration for all supported chains
 
-import { ChainId, isChainId, toChainId } from "./chainId";
-
-export interface ChainRpcConfig {
-  chainId: ChainId;
-  name: string;
-  network: string;
-  nativeCurrency: {
-    decimals: number;
-    name: string;
-    symbol: string;
-  };
-  rpcUrl: string | undefined;
-  blockExplorer?: string;
-}
+import { ChainId, toChainId } from "./chainId";
+import type { ChainRpcConfig } from "./types";
 
 // Environment variable mapping for RPC URLs
-const RPC_URLS = {
-  [ChainId.MonadTestnet]: process.env.ENVIO_CHAIN_10143_RPC_URL,
-} as const;
+const RPC_URLS: Record<ChainId, string> = {
+  [ChainId.AnvilLocal]: "http://localhost:8545",
+  [ChainId.MonadTestnet]: process.env.ENVIO_CHAIN_10143_RPC_URL!,
+};
 
 // Chain configurations
-export const CHAIN_CONFIGS: Partial<Record<ChainId, ChainRpcConfig>> = {
+export const CHAIN_CONFIGS: Record<ChainId, ChainRpcConfig> = {
+  [ChainId.AnvilLocal]: {
+    chainId: ChainId.AnvilLocal,
+    name: "Monad Testnet",
+    network: "monad-testnet",
+    nativeCurrency: {
+      decimals: 18,
+      name: "MON",
+      symbol: "NATIVE",
+    },
+    rpcUrl: RPC_URLS[ChainId.AnvilLocal],
+  },
   [ChainId.MonadTestnet]: {
     chainId: ChainId.MonadTestnet,
     name: "Monad Testnet",
@@ -52,16 +52,6 @@ export function getChainConfig(chainId: number | ChainId): ChainRpcConfig {
   }
 
   return config;
-}
-
-// Helper function to check if chain is supported
-export function isChainSupported(chainId: number | ChainId): boolean {
-  return isChainId(chainId) && chainId in CHAIN_CONFIGS;
-}
-
-// Get all supported chain IDs
-export function getSupportedChainIds(): ChainId[] {
-  return Object.keys(CHAIN_CONFIGS).map(Number) as ChainId[];
 }
 
 // Export RPC URLs for direct access if needed

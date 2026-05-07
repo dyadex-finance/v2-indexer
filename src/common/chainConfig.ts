@@ -1,20 +1,13 @@
 // Chain Configuration Loader
 // Dynamically loads chain-specific configurations based on chainId
 
-import * as monadTestnetConfig from "../config/monad-testnet/chain";
 import { ChainId, isChainId } from "./chainId";
+import { anvilLocalConfig } from "./chains/anvil-local";
+import { monadTestnetConfig } from "./chains/monad-testnet";
+import type { ChainConfig } from "./types";
 
-export interface ChainConfig {
-  FACTORY_ADDRESS: string;
-  REFERENCE_TOKEN: string;
-  STABLE_TOKEN_PAIRS: string[];
-  WHITELIST: string[];
-  STABLECOINS: string[];
-  MINIMUM_USD_THRESHOLD_NEW_PAIRS: string;
-  MINIMUM_LIQUIDITY_THRESHOLD_ETH: string;
-}
-
-const CHAIN_CONFIGS: Partial<Record<ChainId, ChainConfig>> = {
+const CHAIN_CONFIGS: Record<ChainId, ChainConfig> = {
+  [ChainId.AnvilLocal]: anvilLocalConfig,
   [ChainId.MonadTestnet]: monadTestnetConfig,
 };
 

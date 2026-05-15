@@ -1,4 +1,4 @@
-import type { ChainConfig } from "../../common/types";
+import type { ChainConfig } from "../types";
 
 export const monadTestnetConfig: ChainConfig = {
   FACTORY_ADDRESS: "0x733e88f248b742db6c14c0b1713af5ad7fdd59d0",
